@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estágios de Calor</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 2rem; background-color: #f5f5f5; display: flex; flex-direction: column; align-items: center; }
+    h1 { color: #444; margin-bottom: 1.5rem; }
+    .center-image { margin-bottom: 2rem; }
+    .center-image img { max-width: 90vw; max-height: 80vh; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; transition: opacity 0.3s; }
+    .thumbnails { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; width: 100%; }
+    .thumbnails img { max-width: 150px; cursor: pointer; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: transform 0.2s, opacity 0.3s; opacity: 0.7; }
+    .thumbnails img:hover { transform: scale(1.05); opacity: 1; }
+    .thumbnails img.selected { border: 2px solid #007BFF; opacity: 1; }
+  </style>
+</head>
+<body>
+  <h1>Estágios de Calor</h1>
+  <div class="center-image">
+    <img id="mainImage" src="img/calor1.jpg" alt="Calor 1">
+  </div>
+  <div class="thumbnails">
+    <img src="img/calor1.jpg" alt="Calor 1" class="thumbnail selected">
+    <img src="img/calor2.jpg" alt="Calor 2" class="thumbnail">
+    <img src="img/calor3.jpg" alt="Calor 3" class="thumbnail">
+    <img src="img/calor4.jpg" alt="Calor 4" class="thumbnail">
+    <img src="img/calor5.jpg" alt="Calor 5" class="thumbnail">
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const mainImage = document.getElementById('mainImage');
+      const thumbnails = document.querySelectorAll('.thumbnail');
+      let popupWindow = null;
+      let fadeHandler = null;
+
+      function changeImage(src, alt) {
+        if (fadeHandler) {
+          mainImage.removeEventListener('transitionend', fadeHandler);
+          fadeHandler = null;
+        }
+        fadeHandler = (event) => {
+          if (event.propertyName === 'opacity') {
+            mainImage.src = src;
+            mainImage.alt = alt;
+            mainImage.style.opacity = '1';
+            mainImage.removeEventListener('transitionend', fadeHandler);
+            fadeHandler = null;
+            // atualizar popup se já estiver aberta
+            if (popupWindow && !popupWindow.closed) {
+              popupWindow.location.href = src;
+              popupWindow.focus();
+            }
+          }
+        };
+        mainImage.addEventListener('transitionend', fadeHandler);
+        mainImage.style.opacity = '0';
+      }
+
+      thumbnails.forEach(th => {
+        th.addEventListener('click', () => {
+          thumbnails.forEach(img => img.classList.remove('selected'));
+          th.classList.add('selected');
+          changeImage(th.src, th.alt);
+        });
+      });
+
+      mainImage.addEventListener('click', () => {
+        const src = mainImage.src;
+        if (!popupWindow || popupWindow.closed) {
+          popupWindow = window.open(src, '_blank');
+        } else {
+          popupWindow.location.href = src;
+          popupWindow.focus();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
