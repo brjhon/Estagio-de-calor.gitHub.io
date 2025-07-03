@@ -18,7 +18,7 @@
 <body>
   <h1>Estágios de Calor</h1>
   <div class="center-image">
-    <img id="mainImage" src="img/calor1.jpg" alt="Calor 1">
+    <img id="mainImage" src="img/calor1.jpg" alt="Calor 1" title="Clique para abrir todos os estágios em tela cheia">
   </div>
   <div class="thumbnails">
     <img src="img/calor1.jpg" alt="Calor 1" class="thumbnail selected">
@@ -30,49 +30,55 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const mainImage = document.getElementById('mainImage');
-      const thumbnails = document.querySelectorAll('.thumbnail');
-      let popupWindow = null;
+      const thumbnails = Array.from(document.querySelectorAll('.thumbnail'));
       let fadeHandler = null;
+      // Um popup para cada estágio
+      const popups = Array(thumbnails.length).fill(null);
 
       function changeImage(src, alt) {
-        if (fadeHandler) {
-          mainImage.removeEventListener('transitionend', fadeHandler);
-          fadeHandler = null;
-        }
-        fadeHandler = (event) => {
-          if (event.propertyName === 'opacity') {
+        if (fadeHandler) mainImage.removeEventListener('transitionend', fadeHandler);
+        fadeHandler = (e) => {
+          if (e.propertyName === 'opacity') {
             mainImage.src = src;
             mainImage.alt = alt;
             mainImage.style.opacity = '1';
             mainImage.removeEventListener('transitionend', fadeHandler);
             fadeHandler = null;
-            // atualizar popup se já estiver aberta
-            if (popupWindow && !popupWindow.closed) {
-              popupWindow.location.href = src;
-              popupWindow.focus();
-            }
+            // Atualiza TODAS as abas para o estágio selecionado!
+            const url = 'visualizar.html?src=' + encodeURIComponent(src);
+            popups.forEach((popup, idx) => {
+              if (popup && !popup.closed) {
+                popups[idx].location.href = url;
+                popups[idx].focus();
+              }
+            });
           }
         };
         mainImage.addEventListener('transitionend', fadeHandler);
         mainImage.style.opacity = '0';
       }
 
-      thumbnails.forEach(th => {
-        th.addEventListener('click', () => {
+      // Miniaturas: troca painel central e sincroniza todas as abas
+      thumbnails.forEach((thumb) => {
+        thumb.addEventListener('click', () => {
           thumbnails.forEach(img => img.classList.remove('selected'));
-          th.classList.add('selected');
-          changeImage(th.src, th.alt);
+          thumb.classList.add('selected');
+          changeImage(thumb.src, thumb.alt);
         });
       });
 
+      // Clique no painel central: abre/reutiliza uma aba para cada estágio, sempre fullscreen
       mainImage.addEventListener('click', () => {
-        const src = mainImage.src;
-        if (!popupWindow || popupWindow.closed) {
-          popupWindow = window.open(src, '_blank');
-        } else {
-          popupWindow.location.href = src;
-          popupWindow.focus();
-        }
+        const selectedThumb = thumbnails.find(thumb => thumb.classList.contains('selected'));
+        const url = 'visualizar.html?src=' + encodeURIComponent(selectedThumb.src);
+        thumbnails.forEach((thumb, idx) => {
+          if (!popups[idx] || popups[idx].closed) {
+            popups[idx] = window.open(url, '_blank');
+          } else {
+            popups[idx].location.href = url;
+            popups[idx].focus();
+          }
+        });
       });
     });
   </script>
